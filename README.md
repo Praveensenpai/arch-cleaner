@@ -15,11 +15,7 @@ Interactive system cache, systemd journal log, and user trash cleanup utility fo
 
 ## 📦 Installation
 
-### Arch Linux / Omarchy (`yay` / AUR)
-
-```bash
-yay -S arch-cleaner-git
-```
+> ℹ️ **Note**: AUR submission (`yay -S arch-cleaner-git`) is currently pending due to temporary AUR maintenance. Please use the one-liner installer below in the meantime.
 
 ### Manual / One-Liner
 
