@@ -9,24 +9,39 @@ RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-echo -e "${PURPLE}🚀 Installing arch-cleaner (Rust)...${NC}\n"
+echo -e "${PURPLE}🚀 Installing arch-cleaner...${NC}\n"
 
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"
+
+REPO="Praveensenpai/arch-cleaner"
+RELEASE_URL="https://github.com/${REPO}/releases/latest/download/arch-cleaner-linux-x86_64.tar.gz"
 
 LOCAL_DIR=""
 if [ -n "${BASH_SOURCE[0]}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
     LOCAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 fi
 
-if [ -n "$LOCAL_DIR" ] && [ -f "$LOCAL_DIR/Cargo.toml" ]; then
-    echo -e "${BLUE}📦 Building Rust release binary...${NC}"
+if [ -n "$LOCAL_DIR" ] && [ -f "$LOCAL_DIR/Cargo.toml" ] && command -v cargo >/dev/null 2>&1; then
+    echo -e "${BLUE}📦 Local source detected. Building release binary with Cargo...${NC}"
     cargo build --release --manifest-path "$LOCAL_DIR/Cargo.toml"
     cp "$LOCAL_DIR/target/release/arch-cleaner" "$BIN_DIR/arch-cleaner"
 else
-    RAW_URL="https://raw.githubusercontent.com/Praveensenpai/arch-cleaner/main/bin/arch-cleaner"
-    echo -e "${BLUE}📦 Downloading arch-cleaner binary from GitHub...${NC}"
-    curl -sSL -H 'Cache-Control: no-cache' "$RAW_URL" -o "$BIN_DIR/arch-cleaner"
+    echo -e "${BLUE}📦 Downloading latest pre-compiled Linux binary from GitHub Releases...${NC}"
+    TMP_DIR=$(mktemp -d)
+    if curl -sSL -f "$RELEASE_URL" -o "$TMP_DIR/arch-cleaner.tar.gz"; then
+        tar -xzf "$TMP_DIR/arch-cleaner.tar.gz" -C "$TMP_DIR"
+        if [ -f "$TMP_DIR/arch-cleaner" ]; then
+            cp "$TMP_DIR/arch-cleaner" "$BIN_DIR/arch-cleaner"
+        elif [ -f "$TMP_DIR/dist/arch-cleaner" ]; then
+            cp "$TMP_DIR/dist/arch-cleaner" "$BIN_DIR/arch-cleaner"
+        fi
+        rm -rf "$TMP_DIR"
+    else
+        rm -rf "$TMP_DIR"
+        echo -e "${RED}❌ Failed to download pre-compiled release. (Ensure a release tag like v0.1.0 exists on GitHub)${NC}"
+        exit 1
+    fi
 fi
 
 if [ ! -f "$BIN_DIR/arch-cleaner" ] || [ ! -s "$BIN_DIR/arch-cleaner" ]; then
