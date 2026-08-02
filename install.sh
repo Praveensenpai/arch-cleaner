@@ -9,28 +9,28 @@ RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-echo -e "${PURPLE}🚀 Installing arch-cleaner...${NC}\n"
+echo -e "${PURPLE}🚀 Installing arch-cleaner (Rust)...${NC}\n"
 
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"
 
-RAW_URL="https://raw.githubusercontent.com/Praveensenpai/arch-cleaner/main/bin/arch-cleaner"
-
-# Check if running directly from a local repository clone
 LOCAL_DIR=""
 if [ -n "${BASH_SOURCE[0]}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
     LOCAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 fi
 
-if [ -n "$LOCAL_DIR" ] && [ -f "$LOCAL_DIR/PKGBUILD" ] && [ -f "$LOCAL_DIR/bin/arch-cleaner" ]; then
-    cp "$LOCAL_DIR/bin/arch-cleaner" "$BIN_DIR/arch-cleaner"
+if [ -n "$LOCAL_DIR" ] && [ -f "$LOCAL_DIR/Cargo.toml" ]; then
+    echo -e "${BLUE}📦 Building Rust release binary...${NC}"
+    cargo build --release --manifest-path "$LOCAL_DIR/Cargo.toml"
+    cp "$LOCAL_DIR/target/release/arch-cleaner" "$BIN_DIR/arch-cleaner"
 else
+    RAW_URL="https://raw.githubusercontent.com/Praveensenpai/arch-cleaner/main/bin/arch-cleaner"
     echo -e "${BLUE}📦 Downloading arch-cleaner binary from GitHub...${NC}"
     curl -sSL -H 'Cache-Control: no-cache' "$RAW_URL" -o "$BIN_DIR/arch-cleaner"
 fi
 
 if [ ! -f "$BIN_DIR/arch-cleaner" ] || [ ! -s "$BIN_DIR/arch-cleaner" ]; then
-    echo -e "${RED}❌ Error: Failed to download arch-cleaner binary!${NC}"
+    echo -e "${RED}❌ Error: Failed to install arch-cleaner binary!${NC}"
     exit 1
 fi
 
