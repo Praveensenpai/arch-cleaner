@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -41,6 +43,8 @@ jobs:
       - name: Upload Release Artifact to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
+          name: "arch-cleaner ${{ github.ref_name }}"
+          generate_release_notes: true
           files: arch-cleaner-linux-x86_64.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
