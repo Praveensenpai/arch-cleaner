@@ -1,9 +1,12 @@
 use colored::*;
 use inquire::MultiSelect;
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use walkdir::WalkDir;
+
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn format_bytes(bytes: u64) -> String {
     const KB: u64 = 1024;
@@ -41,7 +44,6 @@ fn get_journal_usage() -> String {
 
     if let Ok(out) = output {
         let text = String::from_utf8_lossy(&out.stdout);
-        // Typical output: "Archived and active journals take up 1.2G in the file system."
         if let Some(pos) = text.find("take up ") {
             let rest = &text[pos + 8..];
             if let Some(end) = rest.find(" in the file system") {
@@ -74,8 +76,25 @@ impl std::fmt::Display for CleanupTask {
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() > 1 {
+        let arg = args[1].to_lowercase();
+        if arg == "--version" || arg == "-v" || arg == "version" || arg == "-version" {
+            println!("arch-cleaner v{}", VERSION);
+            return;
+        }
+        if arg == "--help" || arg == "-h" || arg == "help" {
+            println!("{} v{} - Interactive System Cleanup Utility for Arch Linux", "arch-cleaner".purple().bold(), VERSION);
+            println!("\nUsage: arch-cleaner [options]");
+            println!("\nOptions:");
+            println!("  version, -v, --version    Show version");
+            println!("  help, -h, --help          Show help message");
+            return;
+        }
+    }
+
     println!("{}", "=========================================".magenta().bold());
-    println!("{}", "   🌸 Interactive System Cleanup Utility ✨".cyan().bold());
+    println!("{}", format!("   🌸 Interactive System Cleanup Utility v{} ✨", VERSION).cyan().bold());
     println!("{}\n", "=========================================".magenta().bold());
 
     let home = std::env::var("HOME").unwrap_or_else(|_| "/home/paisen".to_string());
@@ -88,7 +107,6 @@ fn main() {
 
     println!("{}", "🔍 Scanning disk usage...".yellow());
 
-    // Calculate sizes concurrently using rayon join
     let ((pacman_size, yay_size), (trash_size, (thumb_size, journal_usage))) = rayon::join(
         || rayon::join(|| get_dir_size(pacman_dir), || get_dir_size(&yay_dir)),
         || rayon::join(
@@ -109,7 +127,7 @@ fn main() {
         (&opt4, CleanupTask::ThumbnailCache),
     ];
 
-    let defaults = vec![0, 1, 2]; // Options 1, 2, 3 selected by default
+    let defaults = vec![0, 1, 2];
 
     let selected = MultiSelect::new("Select items to clean:", options.iter().map(|o| o.0).collect())
         .with_default(&defaults)
