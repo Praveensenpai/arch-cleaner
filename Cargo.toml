@@ -1,6 +1,6 @@
 [package]
 name = "arch-cleaner"
-version = "0.1.3"
+version = "0.0.1"
 edition = "2021"
 description = "Interactive System Cleanup Utility for Arch Linux"
 
